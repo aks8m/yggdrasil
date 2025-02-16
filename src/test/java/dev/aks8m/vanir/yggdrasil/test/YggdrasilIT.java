@@ -5,13 +5,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class YggdrasilTest {
+public class YggdrasilIT {
 
     @Test
     public void simpleAppTest() {
 
-        Yggdrasil.main(null);
-        assertTrue(true, "App failed to run");
+        Yggdrasil app = new Yggdrasil();
+        app.start(7070);
     }
 
 }
