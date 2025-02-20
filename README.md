@@ -1,2 +1,2 @@
 # Yggdrasil
-Java-based WebRTC compliant server.
+Java-based stream capture server.
