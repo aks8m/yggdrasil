@@ -70,7 +70,12 @@ public class Capture {
     public void error() throws IOException {
         bufferedOutputStream.flush();
         bufferedOutputStream.close();
-        media.toFile().delete();
+        boolean wasDeleted = media.toFile().delete();
+        if (wasDeleted) {
+            LOG.info("File deleted: " + media.toFile().getAbsolutePath());
+        } else {
+            LOG.info("File not deleted: " + media.toFile().getAbsolutePath());
+        }
         state = State.ERROR;
     }
 }

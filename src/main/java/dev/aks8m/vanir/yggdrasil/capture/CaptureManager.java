@@ -1,5 +1,7 @@
 package dev.aks8m.vanir.yggdrasil.capture;
 
+import dev.aks8m.vanir.yggdrasil.message.CompleteCapturePayload;
+import dev.aks8m.vanir.yggdrasil.message.InitCapturePayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +27,11 @@ public class CaptureManager {
         captureMap.put(sessionId, new Capture());
     }
 
-    public void manageFileName(String sessionId, String mediaFile) {
+    public void manageInit(String sessionId, InitCapturePayload initCapturePayload) {
         final Capture capture = getCapture(sessionId);
         if (capture.getState() == State.INITIALIZING) {
             try {
-                Path media = mediaDirectory.resolve(mediaFile);
+                Path media = mediaDirectory.resolve(initCapturePayload.getFileName());
                 capture.init(media);
             } catch (FileNotFoundException e) {
                 manageError(sessionId);
@@ -41,7 +43,7 @@ public class CaptureManager {
         }
     }
 
-    public void manageData(String sessionId, byte[] data) {
+    public void manageCapture(String sessionId, byte[] data) {
         final Capture capture = getCapture(sessionId);
         if (capture.getState() == State.READY || capture.getState() == State.CAPTURING) {
             try {
@@ -55,7 +57,7 @@ public class CaptureManager {
         }
     }
 
-    public void manageEndOfData(String sessionId) {
+    public void manageComplete(String sessionId, CompleteCapturePayload completeCapturePayload) {
         final Capture capture = getCapture(sessionId);
         if (capture.getState() == State.CAPTURING) {
             try {

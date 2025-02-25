@@ -1,10 +1,13 @@
 package dev.aks8m.vanir.yggdrasil;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.aks8m.vanir.yggdrasil.capture.CaptureManager;
 import dev.aks8m.vanir.yggdrasil.config.MediaConfig;
 import dev.aks8m.vanir.yggdrasil.config.PathConfig;
 import dev.aks8m.vanir.yggdrasil.config.ServerConfig;
-import dev.aks8m.vanir.yggdrasil.capture.CaptureManager;
+import dev.aks8m.vanir.yggdrasil.message.CompleteCapturePayload;
+import dev.aks8m.vanir.yggdrasil.message.InitCapturePayload;
 import dev.aks8m.vanir.yggdrasil.message.WebSocketMessage;
 import io.javalin.Javalin;
 import io.javalin.websocket.*;
@@ -31,12 +34,12 @@ public class Yggdrasil {
     }
 
     public Yggdrasil init() {
-        server.ws(pathConfig.webM(), ws -> {
-            ws.onConnect(this::handleOnConnect);
-            ws.onMessage(this::handleMessage);
-            ws.onBinaryMessage(this::handleWebMBinaryMessage);
-            ws.onClose(this::handleOnClose);
-            ws.onError(this::handleOnError);
+        server.ws(pathConfig.webM(), wsConfig -> {
+            wsConfig.onConnect(this::handleOnConnect);
+            wsConfig.onMessage(this::handleOnMessage);
+            wsConfig.onBinaryMessage(this::handleOnWebMBinaryMessage);
+            wsConfig.onClose(this::handleOnClose);
+            wsConfig.onError(this::handleOnError);
         });
         return this;
     }
@@ -58,15 +61,23 @@ public class Yggdrasil {
         LOG.error("Error: ", ctx.error());
     }
 
-    private void handleMessage(WsMessageContext ctx) {
+    private void handleOnMessage(WsMessageContext ctx) {
         WebSocketMessage webSocketMessage = ctx.messageAsClass(WebSocketMessage.class);
-        // TODO-aks8m: Need to see how jackson? is working when converting. Can I have getter/setters rather than public fields??
-
+        if (webSocketMessage != null) {
+            ObjectMapper  mapper = new ObjectMapper();
+            if (webSocketMessage.getEvent().equals("init_capture")) {
+                InitCapturePayload initCapturePayload = mapper.convertValue(webSocketMessage.getPayload(), InitCapturePayload.class);
+                captureManager.manageInit(ctx.sessionId(), initCapturePayload);
+            } else if (webSocketMessage.getEvent().equals("complete_capture")) {
+                CompleteCapturePayload completeCapturePayload = mapper.convertValue(webSocketMessage.getPayload(), CompleteCapturePayload.class);
+                captureManager.manageComplete(ctx.sessionId(), completeCapturePayload);
+            }
+        }
         LOG.info("Received message: {}", ctx.message());
     }
 
-    private void handleWebMBinaryMessage(WsBinaryMessageContext ctx) {
-        captureManager.manageData(ctx.sessionId(), ctx.data());
+    private void handleOnWebMBinaryMessage(WsBinaryMessageContext ctx) {
+        captureManager.manageCapture(ctx.sessionId(), ctx.data());
         LOG.info("Received binary message: {} MB", ctx.data().length / (1024 * 1024));
     }
 
