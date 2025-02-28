@@ -2,7 +2,7 @@ package dev.aks8m.vanir.yggdrasil.message;
 
 public class CompleteCapturePayload {
     private String status;
-    private long dataSize;
+    private long captureSize;
 
     public String getStatus() {
         return status;
@@ -12,11 +12,11 @@ public class CompleteCapturePayload {
         this.status = status;
     }
 
-    public long getDataSize() {
-        return dataSize;
+    public long getCaptureSize() {
+        return captureSize;
     }
 
-    public void setDataSize(long dataSize) {
-        this.dataSize = dataSize;
+    public void setCaptureSize(long captureSize) {
+        this.captureSize = captureSize;
     }
 }

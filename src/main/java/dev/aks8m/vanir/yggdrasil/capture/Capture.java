@@ -22,49 +22,29 @@ public class Capture {
     private Instant endTime;
     private long mediaSize;
 
-    public Capture() {
-        this.state = State.INITIALIZING;
-    }
-
-    public State getState() {
-        return state;
-    }
-
     public void init(Path media) throws FileNotFoundException {
-        assert state == State.INITIALIZING;
         this.media = media;
         FileOutputStream fileOutputStream = new FileOutputStream(media.toFile());
         bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-        state = State.READY;
     }
 
     public void capture(byte[] data) throws IOException {
-        assert state == State.READY || state == State.CAPTURING;
-        if (state == State.READY) {
-            startTime = Instant.now();
-        }
         mediaSize += data.length;
         bufferedOutputStream.write(data);
-        state = State.CAPTURING;
     }
 
     public void complete() throws IOException {
-        assert state == State.CAPTURING;
         bufferedOutputStream.flush();
         bufferedOutputStream.close();
-        endTime = Instant.now();
-        state = State.COMPLETED;
     }
 
     public void close() {
-        assert state == State.COMPLETED;
         LOG.info("\t\tCapture Summary\n" +
                 "---------------------------------" + "\n" +
                 "\t- Artifact Location: " + media.toString() + "\n" +
                 "\t- Artifact Name: " + media.getFileName().toString() + "\n" +
                 "\t- Artifact Size: " + mediaSize / (1024 * 1024) + "\n" +
                 "\t- Capture Duration: " + Duration.between(startTime, endTime) + "\n");
-        state = State.CLOSED;
     }
 
     public void error() throws IOException {
@@ -76,6 +56,30 @@ public class Capture {
         } else {
             LOG.info("File not deleted: " + media.toFile().getAbsolutePath());
         }
-        state = State.ERROR;
+    }
+
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public Instant getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Instant startTime) {
+        this.startTime = startTime;
+    }
+
+    public Instant getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Instant endTime) {
+        this.endTime = endTime;
     }
 }

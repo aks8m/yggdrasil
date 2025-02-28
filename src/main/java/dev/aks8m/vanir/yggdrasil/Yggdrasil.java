@@ -37,7 +37,7 @@ public class Yggdrasil {
         server.ws(pathConfig.webM(), wsConfig -> {
             wsConfig.onConnect(this::handleOnConnect);
             wsConfig.onMessage(this::handleOnMessage);
-            wsConfig.onBinaryMessage(this::handleOnWebMBinaryMessage);
+            wsConfig.onBinaryMessage(this::handleOnBinaryMessage);
             wsConfig.onClose(this::handleOnClose);
             wsConfig.onError(this::handleOnError);
         });
@@ -67,16 +67,24 @@ public class Yggdrasil {
             ObjectMapper  mapper = new ObjectMapper();
             if (webSocketMessage.getEvent().equals("init_capture")) {
                 InitCapturePayload initCapturePayload = mapper.convertValue(webSocketMessage.getPayload(), InitCapturePayload.class);
-                captureManager.manageInit(ctx.sessionId(), initCapturePayload);
+                if (initCapturePayload  != null) {
+                    captureManager.manageInit(ctx.sessionId(), initCapturePayload);
+                } else {
+                    LOG.error("Error with Init Capture Payload: {}", webSocketMessage.getPayload());
+                }
             } else if (webSocketMessage.getEvent().equals("complete_capture")) {
                 CompleteCapturePayload completeCapturePayload = mapper.convertValue(webSocketMessage.getPayload(), CompleteCapturePayload.class);
-                captureManager.manageComplete(ctx.sessionId(), completeCapturePayload);
+                if  (completeCapturePayload != null) {
+                    captureManager.manageComplete(ctx.sessionId(), completeCapturePayload);
+                } else {
+                    LOG.error("Error with Complete Capture Payload: {}", webSocketMessage.getPayload());
+                }
             }
         }
         LOG.info("Received message: {}", ctx.message());
     }
 
-    private void handleOnWebMBinaryMessage(WsBinaryMessageContext ctx) {
+    private void handleOnBinaryMessage(WsBinaryMessageContext ctx) {
         captureManager.manageCapture(ctx.sessionId(), ctx.data());
         LOG.info("Received binary message: {} MB", ctx.data().length / (1024 * 1024));
     }

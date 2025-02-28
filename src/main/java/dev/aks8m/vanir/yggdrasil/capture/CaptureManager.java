@@ -15,10 +15,12 @@ public class CaptureManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(CaptureManager.class);
 
+    private final StateMachine stateMachine;
     private final Path mediaDirectory;
     private final Map<String, Capture> captureMap;
 
     public CaptureManager(Path mediaDirectory) {
+        this.stateMachine = new StateMachine();
         this.captureMap = new HashMap<>();
         this.mediaDirectory = mediaDirectory;
     }
